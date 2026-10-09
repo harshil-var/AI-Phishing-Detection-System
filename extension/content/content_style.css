@@ -1,0 +1,154 @@
+#phishguard-warning-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: rgba(10, 15, 29, 0.96) !important;
+  backdrop-filter: blur(12px) !important;
+  z-index: 2147483647 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  color: #ffffff !important;
+  padding: 20px !important;
+  box-sizing: border-box !important;
+}
+
+.pg-modal {
+  max-width: 580px !important;
+  width: 100% !important;
+  background: #111827 !important;
+  border: 1px solid rgba(239, 68, 68, 0.4) !important;
+  box-shadow: 0 0 50px rgba(239, 68, 68, 0.25) !important;
+  border-radius: 16px !important;
+  padding: 32px !important;
+  text-align: center !important;
+}
+
+.pg-modal.suspicious {
+  border-color: rgba(245, 158, 11, 0.5) !important;
+  box-shadow: 0 0 50px rgba(245, 158, 11, 0.25) !important;
+}
+
+.pg-badge {
+  display: inline-block !important;
+  padding: 6px 16px !important;
+  border-radius: 9999px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+  margin-bottom: 16px !important;
+}
+
+.pg-badge.phishing {
+  background: rgba(239, 68, 68, 0.2) !important;
+  color: #f87171 !important;
+  border: 1px solid #ef4444 !important;
+}
+
+.pg-badge.suspicious {
+  background: rgba(245, 158, 11, 0.2) !important;
+  color: #fbbf24 !important;
+  border: 1px solid #f59e0b !important;
+}
+
+.pg-title {
+  font-size: 24px !important;
+  font-weight: 800 !important;
+  margin: 0 0 12px 0 !important;
+  color: #ffffff !important;
+}
+
+.pg-description {
+  font-size: 14px !important;
+  color: #9ca3af !important;
+  line-height: 1.6 !important;
+  margin-bottom: 24px !important;
+}
+
+.pg-stats {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 24px !important;
+  background: #1f2937 !important;
+  padding: 16px !important;
+  border-radius: 12px !important;
+  margin-bottom: 24px !important;
+}
+
+.pg-stat-val {
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  color: #00f2fe !important;
+}
+
+.pg-stat-lbl {
+  font-size: 11px !important;
+  color: #9ca3af !important;
+  text-transform: uppercase !important;
+}
+
+.pg-reasons {
+  text-align: left !important;
+  background: rgba(0, 0, 0, 0.3) !important;
+  border-radius: 8px !important;
+  padding: 12px 16px !important;
+  margin-bottom: 24px !important;
+}
+
+.pg-reasons ul {
+  margin: 0 !important;
+  padding-left: 20px !important;
+}
+
+.pg-reasons li {
+  font-size: 13px !important;
+  color: #d1d5db !important;
+  margin-bottom: 6px !important;
+}
+
+.pg-actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+  justify-content: center !important;
+}
+
+.pg-btn {
+  padding: 12px 20px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+  border: none !important;
+  transition: all 0.2s !important;
+}
+
+.pg-btn-primary {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+}
+.pg-btn-primary:hover {
+  background: #dc2626 !important;
+}
+
+.pg-btn-secondary {
+  background: #00f2fe !important;
+  color: #0a0f1d !important;
+}
+.pg-btn-secondary:hover {
+  background: #38bdf8 !important;
+}
+
+.pg-btn-outline {
+  background: transparent !important;
+  color: #9ca3af !important;
+  border: 1px solid #4b5563 !important;
+}
+.pg-btn-outline:hover {
+  color: #ffffff !important;
+  border-color: #9ca3af !important;
+}

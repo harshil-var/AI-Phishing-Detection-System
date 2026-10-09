@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PhishGuard AI</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <div class="popup-header">
+      <div class="brand">
+        <span class="shield-icon">🛡</span>
+        <span class="brand-name">PhishGuard <span class="ai-pill">AI</span></span>
+      </div>
+      <span id="status-badge" class="badge safe">LOADING</span>
+    </div>
+
+    <div class="site-card">
+      <div class="label">CURRENT WEBSITE</div>
+      <div id="site-domain" class="domain">Checking website...</div>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="metric-box">
+        <div id="risk-score" class="metric-value">--</div>
+        <div class="metric-label">Risk Score</div>
+      </div>
+      <div class="metric-box">
+        <div id="confidence-score" class="metric-value">--</div>
+        <div class="metric-label">Confidence</div>
+      </div>
+    </div>
+
+    <div id="reasons-container" class="reasons-box">
+      <div class="reasons-title">Security Signals:</div>
+      <ul id="reasons-list">
+        <li>Analyzing current URL...</li>
+      </ul>
+    </div>
+
+    <div class="action-buttons">
+      <button id="btn-full-analysis" class="btn btn-primary">🔍 Full Analysis</button>
+      <button id="btn-security-chatbot" class="btn btn-secondary">🤖 Security Assistant</button>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

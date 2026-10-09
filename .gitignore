@@ -1,0 +1,103 @@
+# ==========================================
+# Python & FastAPI
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ==========================================
+# Virtual Environments
+# ==========================================
+venv/
+.venv/
+env/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ==========================================
+# Environment Variables & Secrets
+# ==========================================
+.env
+.env.*
+!.env.example
+*.pem
+secrets.json
+credentials.json
+
+# ==========================================
+# Node.js & React (Frontend)
+# ==========================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+frontend/dist/
+frontend/build/
+.eslintcache
+
+# ==========================================
+# Machine Learning & Datasets
+# ==========================================
+# Exclude large datasets to prevent bloated Git history
+Dataset/*
+!Dataset/.keep
+
+# Note: We are explicitly not ignoring backend/app/ml/model/phishing_model.pkl 
+# since it's the core model needed to run the app out of the box. If you train 
+# new models that exceed GitHub's 100MB limit, consider adding them here or using Git LFS.
+
+# ==========================================
+# Jupyter Notebooks
+# ==========================================
+.ipynb_checkpoints
+*.ipynb
+
+# ==========================================
+# Browser Extension
+# ==========================================
+# Keep manifest.json and source code, ignore packaged builds
+*.zip
+*.crx
+
+# ==========================================
+# IDE & Operating System
+# ==========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# ==========================================
+# Logs & Temporary Files
+# ==========================================
+*.log
+tmp/
+temp/
