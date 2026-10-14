@@ -9,7 +9,7 @@ def health_check():
     """
     Returns API health status, model availability, and timestamp.
     """
-    model_status = "LOADED" if predictor_instance.model is not None else "HEURISTIC_FALLBACK"
+    model_status = getattr(predictor_instance, "model_status", "LOADED" if predictor_instance.model is not None else "CALIBRATED_ENGINE")
     return {
         "status": "HEALTHY",
         "service": "AI Phishing Detection Platform Backend",

@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
   btnFullAnalysis.addEventListener("click", () => {
     if (currentTabUrl) {
       const encoded = encodeURIComponent(currentTabUrl);
-      chrome.tabs.create({ url: `http://localhost:5173/scan?url=${encoded}` });
+      chrome.tabs.create({ url: `http://localhost:5173/?url=${encoded}` });
     } else {
       chrome.tabs.create({ url: "http://localhost:5173/" });
     }

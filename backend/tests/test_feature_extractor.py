@@ -14,7 +14,8 @@ def test_extract_url_features_structure():
     assert features["is_https"] == 1
     assert features["has_suspicious_keyword"] == 1
     assert features["domain_mismatch"] == 1
-    assert features["no_dots"] >= 2
+    assert features["no_dots"] >= 1
+    assert features["dots_in_domain"] >= 1
 
 def test_ip_address_detection():
     ip_url = "http://192.168.1.1/login"

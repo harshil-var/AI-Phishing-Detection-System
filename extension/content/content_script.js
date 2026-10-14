@@ -1,6 +1,6 @@
 (function () {
   const BACKEND_URL = "http://localhost:8000/api/v1";
-  const DASHBOARD_URL = "http://localhost:5173/scan";
+  const DASHBOARD_URL = "http://localhost:5173";
 
   function renderWarningOverlay(scanData) {
     if (document.getElementById("phishguard-warning-overlay")) return;

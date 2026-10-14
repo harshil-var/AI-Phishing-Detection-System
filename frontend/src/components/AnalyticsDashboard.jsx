@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { ShieldCheck, ShieldAlert, AlertTriangle, Activity, RefreshCw, ArrowUpRight } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, AlertTriangle, Activity, RefreshCw, ArrowUpRight, Info } from 'lucide-react';
 import { fetchRecentScans } from '../services/api';
 
 const COLORS = ['#10b981', '#f59e0b', '#ef4444'];
@@ -13,7 +13,7 @@ export default function AnalyticsDashboard({ onRescan }) {
     setLoading(true);
     try {
       const data = await fetchRecentScans();
-      setScans(data);
+      setScans(data || []);
     } catch (err) {
       console.warn('Failed to load recent scans:', err);
     } finally {
@@ -25,24 +25,48 @@ export default function AnalyticsDashboard({ onRescan }) {
     loadHistory();
   }, []);
 
-  // Compute threat distribution
+  const hasLiveTelemetry = scans.length > 0;
+
+  // Real computation from live telemetry if available, else benchmark baseline
   const safeCount = scans.filter((s) => s.classification === 'SAFE').length;
   const suspCount = scans.filter((s) => s.classification === 'SUSPICIOUS').length;
   const phishCount = scans.filter((s) => s.classification === 'PHISHING').length;
 
-  const pieData = [
-    { name: 'SAFE', value: safeCount || 12 },
-    { name: 'SUSPICIOUS', value: suspCount || 5 },
-    { name: 'PHISHING', value: phishCount || 8 }
-  ];
+  const pieData = hasLiveTelemetry
+    ? [
+        { name: 'SAFE', value: safeCount },
+        { name: 'SUSPICIOUS', value: suspCount },
+        { name: 'PHISHING', value: phishCount }
+      ]
+    : [
+        { name: 'SAFE', value: 12 },
+        { name: 'SUSPICIOUS', value: 5 },
+        { name: 'PHISHING', value: 8 }
+      ];
 
-  const barData = [
-    { name: 'Missing HTTPS', count: scans.filter(s => !s.security_checks?.https).length || 4 },
-    { name: 'Login Keywords', count: scans.filter(s => s.security_checks?.suspicious_keywords).length || 7 },
-    { name: 'Raw IP Host', count: scans.filter(s => s.security_checks?.ip_address).length || 3 },
-    { name: 'Brand Mismatch', count: scans.filter(s => s.security_checks?.domain_mismatch).length || 5 },
-    { name: 'Risky TLD', count: scans.filter(s => s.security_checks?.suspicious_tld).length || 6 }
-  ];
+  const barData = hasLiveTelemetry
+    ? [
+        { name: 'Missing HTTPS', count: scans.filter(s => !s.security_checks?.https).length },
+        { name: 'Login Keywords', count: scans.filter(s => s.security_checks?.suspicious_keywords).length },
+        { name: 'Raw IP Host', count: scans.filter(s => s.security_checks?.ip_address).length },
+        { name: 'Brand Mismatch', count: scans.filter(s => s.security_checks?.domain_mismatch).length },
+        { name: 'Risky TLD', count: scans.filter(s => s.security_checks?.suspicious_tld).length }
+      ]
+    : [
+        { name: 'Missing HTTPS', count: 4 },
+        { name: 'Login Keywords', count: 7 },
+        { name: 'Raw IP Host', count: 3 },
+        { name: 'Brand Mismatch', count: 5 },
+        { name: 'Risky TLD', count: 6 }
+      ];
+
+  const avgConfidence = hasLiveTelemetry
+    ? (scans.reduce((acc, s) => acc + (s.confidence || 0), 0) / scans.length).toFixed(1)
+    : '88.5';
+
+  const threatRatio = hasLiveTelemetry
+    ? Math.round((phishCount / scans.length) * 100)
+    : 32;
 
   return (
     <div className="w-full max-w-6xl mx-auto py-6 px-4 animate-fadeIn space-y-8">
@@ -54,7 +78,11 @@ export default function AnalyticsDashboard({ onRescan }) {
             <Activity className="w-6 h-6 text-[#00f2fe]" />
             Platform Threat Analytics
           </h2>
-          <p className="text-xs text-gray-400">Real-time telemetry and classification breakdown from active backend scans.</p>
+          <p className="text-xs text-gray-400">
+            {hasLiveTelemetry
+              ? `Real-time telemetry aggregated across ${scans.length} active scan(s).`
+              : 'Aggregated detection telemetry and benchmark classification breakdown.'}
+          </p>
         </div>
 
         <button
@@ -66,32 +94,47 @@ export default function AnalyticsDashboard({ onRescan }) {
         </button>
       </div>
 
+      {!hasLiveTelemetry && (
+        <div className="p-3.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs flex items-center gap-3">
+          <Info className="w-4 h-4 shrink-0 text-[#00f2fe]" />
+          <span>
+            <b>Benchmark Demonstration Mode:</b> No scans logged yet in this backend session. The dashboard is displaying sample benchmark distributions. Scan URLs to generate real-time live telemetry!
+          </span>
+        </div>
+      )}
+
       {/* Top Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="glass-card p-4 rounded-xl border border-white/10">
           <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Total Scans Recorded</span>
           <div className="text-2xl font-black text-white mt-1">{scans.length}</div>
-          <span className="text-[11px] text-cyan-400 font-mono">Live Telemetry</span>
+          <span className="text-[11px] text-cyan-400 font-mono">
+            {hasLiveTelemetry ? 'Active Session Scans' : 'No Live Scans Yet'}
+          </span>
         </div>
 
         <div className="glass-card p-4 rounded-xl border border-white/10">
           <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Phishing Threat Ratio</span>
           <div className="text-2xl font-black text-red-400 mt-1">
-            {scans.length > 0 ? Math.round((phishCount / scans.length) * 100) : 32}%
+            {threatRatio}%
           </div>
-          <span className="text-[11px] text-red-400/80 font-mono">High Severity</span>
+          <span className="text-[11px] text-red-400/80 font-mono">
+            {hasLiveTelemetry ? `${phishCount} Flagged Phishing` : 'Baseline Benchmark'}
+          </span>
         </div>
 
         <div className="glass-card p-4 rounded-xl border border-white/10">
-          <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Avg ML Model Confidence</span>
-          <div className="text-2xl font-black text-[#00f2fe] mt-1">98.4%</div>
-          <span className="text-[11px] text-emerald-400 font-mono">Random Forest 99.4% Acc</span>
+          <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Mean Decision Confidence</span>
+          <div className="text-2xl font-black text-[#00f2fe] mt-1">{avgConfidence}%</div>
+          <span className="text-[11px] text-emerald-400 font-mono">
+            {hasLiveTelemetry ? 'Measured Session Certainty' : 'Trained Baseline Average'}
+          </span>
         </div>
 
         <div className="glass-card p-4 rounded-xl border border-white/10">
-          <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Security Engine Status</span>
-          <div className="text-2xl font-black text-emerald-400 mt-1">ACTIVE</div>
-          <span className="text-[11px] text-gray-400 font-mono">6 Modular Checkers</span>
+          <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Detection Pipeline</span>
+          <div className="text-2xl font-black text-emerald-400 mt-1">OPERATIONAL</div>
+          <span className="text-[11px] text-gray-400 font-mono">6 Modular Security Checkers</span>
         </div>
       </div>
 
@@ -100,7 +143,12 @@ export default function AnalyticsDashboard({ onRescan }) {
         
         {/* Pie Chart */}
         <div className="glass-card p-6 rounded-2xl border border-white/10">
-          <h3 className="text-sm font-bold text-white mb-4">Threat Classification Breakdown</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-bold text-white">Threat Classification Breakdown</h3>
+            <span className="text-[10px] text-gray-400 font-mono">
+              {hasLiveTelemetry ? 'Live Session Data' : 'Benchmark Sample'}
+            </span>
+          </div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -124,15 +172,20 @@ export default function AnalyticsDashboard({ onRescan }) {
             </ResponsiveContainer>
           </div>
           <div className="flex justify-center gap-6 text-xs text-gray-300 font-medium mt-2">
-            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-emerald-500"></span> SAFE</span>
-            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-amber-500"></span> SUSPICIOUS</span>
-            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-red-500"></span> PHISHING</span>
+            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-emerald-500"></span> SAFE ({pieData[0].value})</span>
+            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-amber-500"></span> SUSPICIOUS ({pieData[1].value})</span>
+            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-red-500"></span> PHISHING ({pieData[2].value})</span>
           </div>
         </div>
 
         {/* Bar Chart */}
         <div className="glass-card p-6 rounded-2xl border border-white/10">
-          <h3 className="text-sm font-bold text-white mb-4">Common Security Check Flags</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-bold text-white">Common Security Check Flags</h3>
+            <span className="text-[10px] text-gray-400 font-mono">
+              {hasLiveTelemetry ? 'Live Signals' : 'Benchmark Sample'}
+            </span>
+          </div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={barData}>
@@ -155,7 +208,7 @@ export default function AnalyticsDashboard({ onRescan }) {
 
         {scans.length === 0 ? (
           <div className="text-center py-8 text-xs text-gray-500">
-            No scans logged yet. Use the URL Scanner to analyze links.
+            No scans recorded in current backend session. Use the URL Scanner to analyze links.
           </div>
         ) : (
           <div className="overflow-x-auto">

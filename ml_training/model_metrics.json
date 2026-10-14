@@ -1,8 +1,113 @@
 {
-  "accuracy": 0.9943,
-  "precision": 0.9907,
-  "recall": 0.998,
-  "f1": 0.9943,
-  "roc_auc": 0.997,
-  "sample_size": 50000
+  "final_model": {
+    "accuracy": 0.9945,
+    "precision": 0.999,
+    "recall": 0.99,
+    "f1": 0.9945,
+    "false_positive_rate": 0.001,
+    "false_negative_rate": 0.01,
+    "roc_auc": 0.9968,
+    "pr_auc": 0.9979,
+    "brier_score": 0.0051,
+    "confusion_matrix": [
+      [
+        2997,
+        3
+      ],
+      [
+        30,
+        2968
+      ]
+    ]
+  },
+  "baseline_model": {
+    "accuracy": 0.5193,
+    "precision": 0.5098,
+    "recall": 0.997,
+    "f1": 0.6746,
+    "false_positive_rate": 0.958,
+    "false_negative_rate": 0.003,
+    "roc_auc": 0.6305,
+    "pr_auc": 0.747,
+    "brier_score": 0.4355,
+    "confusion_matrix": [
+      [
+        126,
+        2874
+      ],
+      [
+        9,
+        2989
+      ]
+    ]
+  },
+  "validation_comparison": {
+    "LogisticRegression": {
+      "accuracy": 0.994,
+      "precision": 0.999,
+      "recall": 0.989,
+      "f1": 0.994,
+      "false_positive_rate": 0.001,
+      "false_negative_rate": 0.011,
+      "roc_auc": 0.9973,
+      "pr_auc": 0.9983,
+      "brier_score": 0.0051,
+      "confusion_matrix": [
+        [
+          2997,
+          3
+        ],
+        [
+          33,
+          2965
+        ]
+      ]
+    },
+    "HistGradientBoosting": {
+      "accuracy": 0.9947,
+      "precision": 1.0,
+      "recall": 0.9893,
+      "f1": 0.9946,
+      "false_positive_rate": 0.0,
+      "false_negative_rate": 0.0107,
+      "roc_auc": 0.9976,
+      "pr_auc": 0.9984,
+      "brier_score": 0.0051,
+      "confusion_matrix": [
+        [
+          3000,
+          0
+        ],
+        [
+          32,
+          2966
+        ]
+      ]
+    },
+    "RandomForest": {
+      "accuracy": 0.9947,
+      "precision": 0.999,
+      "recall": 0.9903,
+      "f1": 0.9946,
+      "false_positive_rate": 0.001,
+      "false_negative_rate": 0.0097,
+      "roc_auc": 0.9977,
+      "pr_auc": 0.9985,
+      "brier_score": 0.0051,
+      "confusion_matrix": [
+        [
+          2997,
+          3
+        ],
+        [
+          29,
+          2969
+        ]
+      ]
+    }
+  },
+  "selected_model": "HistGradientBoosting",
+  "threshold": 0.45,
+  "feature_count": 28,
+  "sample_size": 39985
 }

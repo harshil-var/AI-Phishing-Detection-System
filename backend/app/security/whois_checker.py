@@ -1,6 +1,6 @@
 import datetime
 from typing import Dict, Any
-from app.ml.preprocessing import extract_domain
+from app.ml.preprocessing import extract_domain, is_ssrf_dangerous_host
 
 try:
     import whois
@@ -10,8 +10,11 @@ except ImportError:
 def get_domain_whois(url: str) -> Dict[str, Any]:
     """
     Performs WHOIS domain lookup with timeout & fallback for privacy/rate limits.
+    Enforces SSRF prevention against internal networks and cloud metadata.
     """
-    domain = extract_domain(url)
+    domain = extract_domain(url) if ("/" in url or ":" in url) else url.strip().lower()
+    domain = domain.split(":")[0].strip("[]")
+
     default_result = {
         "domain": domain,
         "creation_date": None,
@@ -23,8 +26,14 @@ def get_domain_whois(url: str) -> Dict[str, Any]:
         "status": "UNAVAILABLE"
     }
 
-    if not domain or domain == "localhost" or domain.replace(".", "").isdigit():
-        default_result["error"] = "IP address or invalid domain name"
+    if not domain or domain.replace(".", "").isdigit():
+        default_result["error"] = "Raw IP address or invalid domain name; WHOIS domain record not applicable"
+        return default_result
+
+    # SSRF verification before network request
+    is_dangerous, reason = is_ssrf_dangerous_host(domain)
+    if is_dangerous:
+        default_result["error"] = f"Security restriction: {reason}"
         return default_result
 
     if whois is None:
@@ -66,7 +75,7 @@ def get_domain_whois(url: str) -> Dict[str, Any]:
             "expiry_date": expiry_date.strftime("%Y-%m-%d") if isinstance(expiry_date, datetime.datetime) else str(expiry_date) if expiry_date else None,
             "is_recent": is_recent,
             "error": None,
-            "status": "AVAILABLE"
+            "status": "AVAILABLE" if (creation_date or registrar) else "UNAVAILABLE"
         }
     except Exception as e:
         default_result["error"] = f"WHOIS lookup failed or domain privacy enabled: {str(e)[:60]}"

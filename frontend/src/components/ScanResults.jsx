@@ -18,7 +18,9 @@ export default function ScanResults({ scanData }) {
     severity,
     reasons = [],
     security_checks = {},
-    whois_data = {}
+    whois_data = {},
+    model_source,
+    prob_phishing
   } = scanData;
 
   const isPhishing = classification === 'PHISHING';
@@ -118,7 +120,9 @@ export default function ScanResults({ scanData }) {
                 </div>
                 <div className="flex items-center gap-1 text-[10px] text-gray-400 mt-1">
                   <Cpu className="w-3 h-3 text-cyan-400" />
-                  <span>ML Certainty</span>
+                  <span>
+                    {model_source === 'ML_RANDOM_FOREST' ? 'Random Forest' : 'Calibrated Decision'}
+                  </span>
                 </div>
               </div>
               <span className="text-[11px] font-bold text-gray-300 uppercase tracking-wider block">Confidence</span>
@@ -132,31 +136,42 @@ export default function ScanResults({ scanData }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         
         {/* Explainable AI (XAI) Panel */}
-        <div className="glass-card rounded-2xl p-6 border border-white/10">
-          <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
-            <div className="flex items-center gap-2">
-              <Cpu className="w-5 h-5 text-[#00f2fe]" />
-              <h3 className="text-base font-bold text-white">Explainable AI (XAI) Analysis</h3>
-            </div>
-            <span className="text-[11px] bg-cyan-500/10 text-cyan-300 px-2 py-0.5 rounded font-mono">Interpretability Engine</span>
-          </div>
-
-          <p className="text-xs text-gray-400 mb-4">
-            Why was this URL classified as <b className="text-white">{classification}</b> with a risk score of <b className="text-white">{risk_score}/100</b>?
-          </p>
-
-          <div className="space-y-3">
-            {reasons.map((reason, idx) => (
-              <div key={idx} className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/5 text-xs text-gray-200">
-                {isPhishing || isSuspicious ? (
-                  <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                ) : (
-                  <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                )}
-                <span className="leading-relaxed">{reason}</span>
+        <div className="glass-card rounded-2xl p-6 border border-white/10 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2">
+                <Cpu className="w-5 h-5 text-[#00f2fe]" />
+                <h3 className="text-base font-bold text-white">Explainable AI (XAI) Analysis</h3>
               </div>
-            ))}
+              <span className="text-[11px] bg-cyan-500/10 text-cyan-300 px-2 py-0.5 rounded font-mono">Interpretability Engine</span>
+            </div>
+
+            <p className="text-xs text-gray-400 mb-4">
+              Detailed findings explaining why this URL received a risk score of <b className="text-white">{risk_score}/100</b> ({classification}):
+            </p>
+
+            <div className="space-y-3">
+              {reasons.map((reason, idx) => (
+                <div key={idx} className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/5 text-xs text-gray-200">
+                  {isPhishing ? (
+                    <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                  ) : isSuspicious ? (
+                    <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  ) : (
+                    <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                  )}
+                  <span className="leading-relaxed">{reason}</span>
+                </div>
+              ))}
+            </div>
           </div>
+
+          {prob_phishing !== undefined && (
+            <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-gray-400 font-mono">
+              <span>Estimated Phishing Probability:</span>
+              <span className="font-bold text-cyan-300">{Math.round(prob_phishing * 100)}%</span>
+            </div>
+          )}
         </div>
 
         {/* Security Checks Grid */}
@@ -171,7 +186,7 @@ export default function ScanResults({ scanData }) {
 
           <div className="grid grid-cols-2 gap-3 mb-4">
             
-            {/* HTTPS */}
+            {/* 1. HTTPS */}
             <div className="p-3 rounded-xl bg-white/5 border border-white/5">
               <div className="flex items-center justify-between text-xs mb-1">
                 <span className="text-gray-400 flex items-center gap-1.5 font-medium">
@@ -188,7 +203,30 @@ export default function ScanResults({ scanData }) {
               </div>
             </div>
 
-            {/* Suspicious Keywords */}
+            {/* 2. Brand Authenticity / Impersonation */}
+            <div className="p-3 rounded-xl bg-white/5 border border-white/5">
+              <div className="flex items-center justify-between text-xs mb-1">
+                <span className="text-gray-400 flex items-center gap-1.5 font-medium">
+                  <Layers className="w-3.5 h-3.5 text-purple-400" /> Brand Authenticity
+                </span>
+                {security_checks.is_official_brand ? (
+                  <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
+                ) : security_checks.domain_mismatch ? (
+                  <XCircle className="w-3.5 h-3.5 text-red-400" />
+                ) : (
+                  <Info className="w-3.5 h-3.5 text-cyan-400" />
+                )}
+              </div>
+              <div className="text-xs font-bold text-white truncate" title={security_checks.brand_details || ''}>
+                {security_checks.is_official_brand
+                  ? 'OFFICIAL BRAND DOMAIN'
+                  : security_checks.domain_mismatch
+                  ? 'IMPERSONATION DETECTED'
+                  : 'NO BRAND TARGETED'}
+              </div>
+            </div>
+
+            {/* 3. Suspicious Keywords */}
             <div className="p-3 rounded-xl bg-white/5 border border-white/5">
               <div className="flex items-center justify-between text-xs mb-1">
                 <span className="text-gray-400 flex items-center gap-1.5 font-medium">
@@ -205,11 +243,11 @@ export default function ScanResults({ scanData }) {
               </div>
             </div>
 
-            {/* IP Address Host */}
+            {/* 4. IP Address Host */}
             <div className="p-3 rounded-xl bg-white/5 border border-white/5">
               <div className="flex items-center justify-between text-xs mb-1">
                 <span className="text-gray-400 flex items-center gap-1.5 font-medium">
-                  <Globe className="w-3.5 h-3.5 text-cyan-400" /> Raw IP Usage
+                  <Globe className="w-3.5 h-3.5 text-cyan-400" /> Host Type
                 </span>
                 {security_checks.ip_address ? (
                   <XCircle className="w-3.5 h-3.5 text-red-400" />
@@ -218,36 +256,65 @@ export default function ScanResults({ scanData }) {
                 )}
               </div>
               <div className="text-xs font-bold text-white">
-                {security_checks.ip_address ? 'YES (Raw IP Host)' : 'NO (Domain Name)'}
+                {security_checks.ip_address ? 'RAW IP HOST' : 'STANDARD DOMAIN'}
               </div>
             </div>
 
-            {/* Brand Impersonation */}
+            {/* 5. TLD Risk */}
             <div className="p-3 rounded-xl bg-white/5 border border-white/5">
               <div className="flex items-center justify-between text-xs mb-1">
                 <span className="text-gray-400 flex items-center gap-1.5 font-medium">
-                  <Layers className="w-3.5 h-3.5 text-purple-400" /> Brand Mismatch
+                  <Globe className="w-3.5 h-3.5 text-indigo-400" /> TLD Reputation
                 </span>
-                {security_checks.domain_mismatch ? (
-                  <XCircle className="w-3.5 h-3.5 text-red-400" />
+                {security_checks.suspicious_tld ? (
+                  <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
                 ) : (
                   <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
                 )}
               </div>
               <div className="text-xs font-bold text-white">
-                {security_checks.domain_mismatch ? 'MISMATCH DETECTED' : 'VERIFIED MATCH'}
+                {security_checks.suspicious_tld ? 'HIGH-RISK TLD' : `STANDARD ( .${security_checks.tld || 'com'} )`}
+              </div>
+            </div>
+
+            {/* 6. Domain Age Verification */}
+            <div className="p-3 rounded-xl bg-white/5 border border-white/5">
+              <div className="flex items-center justify-between text-xs mb-1">
+                <span className="text-gray-400 flex items-center gap-1.5 font-medium">
+                  <Calendar className="w-3.5 h-3.5 text-cyan-400" /> Registration Age
+                </span>
+                {whois_data.is_recent ? (
+                  <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+                ) : whois_data.age_days ? (
+                  <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
+                ) : (
+                  <Info className="w-3.5 h-3.5 text-gray-400" />
+                )}
+              </div>
+              <div className="text-xs font-bold text-white">
+                {whois_data.is_recent
+                  ? `NEW (<90d)`
+                  : whois_data.age_days
+                  ? `${whois_data.age_days} DAYS`
+                  : 'UNVERIFIED / HIDDEN'}
               </div>
             </div>
 
           </div>
 
-          {/* WHOIS Info Box */}
+          {/* WHOIS Details Box */}
           <div className="p-3.5 rounded-xl bg-[#0a0f1d]/80 border border-white/10 text-xs">
             <div className="flex items-center justify-between text-gray-300 font-bold mb-2">
               <span className="flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-cyan-400" /> WHOIS Domain Intelligence
               </span>
-              <span className="text-[10px] text-gray-500">{whois_data.status || 'CHECKED'}</span>
+              <span className={`text-[10px] px-2 py-0.5 rounded font-mono ${
+                whois_data.status === 'AVAILABLE'
+                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                  : 'bg-white/5 text-gray-400 border border-white/10'
+              }`}>
+                {whois_data.status || 'UNAVAILABLE'}
+              </span>
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-gray-400">

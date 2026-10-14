@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException, status, Query
+from fastapi import APIRouter, HTTPException, status
 from typing import List, Dict, Any
 from app.schemas.scan import ScanRequest, ScanResponse
 from app.services.phishing_service import scan_url, get_recent_scans
 from app.security.whois_checker import get_domain_whois
+from app.ml.preprocessing import is_ssrf_dangerous_host
 
 router = APIRouter(prefix="", tags=["URL Scanning"])
 
@@ -20,6 +21,11 @@ def analyze_url(payload: ScanRequest):
     try:
         result = scan_url(payload.url)
         return result
+    except ValueError as ve:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(ve)
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -43,4 +49,13 @@ def domain_intelligence(domain_name: str):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Valid domain name with extension required."
         )
-    return get_domain_whois(domain_name)
+    
+    clean_domain = domain_name.strip().lower()
+    is_dangerous, reason = is_ssrf_dangerous_host(clean_domain)
+    if is_dangerous:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Security restriction: {reason}"
+        )
+
+    return get_domain_whois(clean_domain)
